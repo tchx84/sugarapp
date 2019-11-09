@@ -25,6 +25,7 @@ from xml.dom import minidom
 
 gi.require_version('Gtk', '3.0')
 
+from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
@@ -34,10 +35,99 @@ from sugar3.activity.widgets import ActivityToolbarButton
 from sugar3.bundle.activitybundle import get_bundle_instance
 from sugar3.graphics import style
 from sugar3.graphics.toolbutton import ToolButton
-from sugar3.graphics.window import Window as SugarWindow
 
 
-class SugarCompatibleActivity(SugarWindow, Gtk.Container):
+class SugarCompatibleWindow(Gtk.ApplicationWindow):
+    def __init__(self, **args):
+        Gtk.ApplicationWindow.__init__(self, **args)
+
+        self.set_decorated(False)
+        self.maximize()
+
+        self._toolbar_box = None
+        self._alerts = []
+        self._canvas = None
+
+        self.__vbox = Gtk.VBox()
+        self.__hbox = Gtk.HBox()
+        self.__vbox.pack_start(self.__hbox, True, True, 0)
+        self.__hbox.show()
+
+        self.add_events(Gdk.EventMask.POINTER_MOTION_HINT_MASK |
+                        Gdk.EventMask.POINTER_MOTION_MASK |
+                        Gdk.EventMask.BUTTON_RELEASE_MASK |
+                        Gdk.EventMask.TOUCH_MASK)
+
+        self.add(self.__vbox)
+        self.__vbox.show()
+
+    def is_fullscreen(self):
+        return False
+
+    def set_canvas(self, canvas):
+        if self._canvas:
+            self.__hbox.remove(self._canvas)
+
+        if canvas:
+            self.__hbox.pack_start(canvas, True, True, 0)
+
+        self._canvas = canvas
+        self.__vbox.set_focus_child(self._canvas)
+
+    def get_canvas(self):
+        return self._canvas
+
+    canvas = property(get_canvas, set_canvas)
+
+    def get_toolbar_box(self):
+        return self._toolbar_box
+
+    def set_toolbar_box(self, toolbar_box):
+        if self._toolbar_box:
+            self.__vbox.remove(self._toolbar_box)
+
+        if toolbar_box:
+            self.__vbox.pack_start(toolbar_box, False, False, 0)
+            self.__vbox.reorder_child(toolbar_box, 0)
+
+        self._toolbar_box = toolbar_box
+
+    toolbar_box = property(get_toolbar_box, set_toolbar_box)
+
+    def add_alert(self, alert):
+        self._alerts.append(alert)
+        if len(self._alerts) == 1:
+            self.__vbox.pack_start(alert, False, False, 0)
+            if self._toolbar_box is not None:
+                self.__vbox.reorder_child(alert, 1)
+            else:
+                self.__vbox.reorder_child(alert, 0)
+
+    def remove_alert(self, alert):
+        if alert in self._alerts:
+            self._alerts.remove(alert)
+            if alert.get_parent() is not None:
+                self.__vbox.remove(alert)
+                if len(self._alerts) >= 1:
+                    self.__vbox.pack_start(self._alerts[0], False, False, 0)
+                    if self._toolbar_box is not None:
+                        self.__vbox.reorder_child(self._alerts[0], 1)
+                    else:
+                        self.__vbox.reorder_child(self._alert[0], 0)
+
+    def set_enable_fullscreen_mode(self, enable_fullscreen_mode):
+        pass
+
+    def get_enable_fullscreen_mode(self):
+        return False
+
+    enable_fullscreen_mode = GObject.Property(
+        type=object,
+        setter=set_enable_fullscreen_mode,
+        getter=get_enable_fullscreen_mode)
+
+
+class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
 
     __gtype_name__ = 'SugarCompatibleActivity'
 
@@ -67,7 +157,7 @@ class SugarCompatibleActivity(SugarWindow, Gtk.Container):
         settings.set_property('gtk-font-name',
                               '%s %f' % (style.FONT_FACE, style.FONT_SIZE))
 
-        SugarWindow.__init__(self)
+        SugarCompatibleWindow.__init__(self)
 
         self._handle = handle
         self._read_file_called = False
@@ -110,10 +200,10 @@ class SugarCompatibleActivity(SugarWindow, Gtk.Container):
         return os.environ['SUGAR_BUNDLE_ID']
 
     def get_canvas(self):
-        return SugarWindow.get_canvas(self)
+        return SugarCompatibleWindow.get_canvas(self)
 
     def set_canvas(self, canvas):
-        SugarWindow.set_canvas(self, canvas)
+        SugarCompatibleWindow.set_canvas(self, canvas)
         if not self._read_file_called:
             canvas.connect('map', self.__canvas_map_cb)
 
@@ -213,6 +303,7 @@ class SugarCompatibleActivity(SugarWindow, Gtk.Container):
             pass
         self._read_file_called = True
         canvas.disconnect_by_func(self.__canvas_map_cb)
+        self.fullscreen()
 
 
 class ExtendedActivityToolbarButton(ActivityToolbarButton):

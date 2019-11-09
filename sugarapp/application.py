@@ -51,13 +51,10 @@ class Application(Gtk.Application):
         self._path = None
 
     def do_activate(self):
-        window = self.props.active_window
-        if not window:
+        if self._activity is None:
             self._activity = self._setup_activity()
-            # XXX get rid of this window
-            window = Gtk.ApplicationWindow(application=self)
-        window.present()
-        window.hide()
+            self.add_window(self._activity)
+        self._activity.present()
 
     def do_open(self, files, hint, data):
         self._path = files[0].get_path()
