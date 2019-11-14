@@ -31,4 +31,5 @@ setup(name='sugarapp',
       scripts=[
           'bin/sugarapp',
           'utils/sugarapp-gen-appdata',
-          'utils/sugarapp-gen-desktop'])
+          'utils/sugarapp-gen-desktop',
+          'utils/sugarapp-gen-mimetypes'])
