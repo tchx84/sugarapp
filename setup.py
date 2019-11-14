@@ -30,4 +30,5 @@ setup(name='sugarapp',
       zip_safe=False,
       scripts=[
           'bin/sugarapp',
-          'utils/sugarapp-gen-appdata'])
+          'utils/sugarapp-gen-appdata',
+          'utils/sugarapp-gen-desktop'])

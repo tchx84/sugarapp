@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+# sugarapp-gen-desktop
+#
+# Copyright 2019 Martin Abente Lahaye
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+import os
+import argparse
+import configparser
+
+from xml.dom import minidom
+
+
+def generate_desktop(info_path, desktop_path, mimetype_file):
+    info = configparser.ConfigParser()
+    info.read(os.path.join(info_path))
+
+    required_fields = [
+        'name',
+        'bundle_id',
+        'summary']
+    for name in required_fields:
+        if not info.has_option('Activity', name):
+            print('[ERROR] Activity needs {} metadata file'.format(name))
+            sys.exit(-1)
+
+    section = 'Desktop Entry'
+    desktop = configparser.ConfigParser()
+    desktop.optionxform = str
+    desktop.add_section(section)
+    desktop.set(section, 'Name', info.get('Activity', 'name'))
+    desktop.set(section, 'GenericName', info.get('Activity', 'name'))
+    desktop.set(section, 'TryExec', 'sugarapp')
+    desktop.set(section, 'Exec', 'sugarapp')
+    desktop.set(section, 'Icon', info.get('Activity', 'bundle_id'))
+    desktop.set(section, 'Type', 'Application')
+    desktop.set(section, 'Comment', info.get('Activity', 'summary'))
+    desktop.set(section, 'Terminal', 'false')
+    desktop.set(section, 'StartupNotify', 'true')
+    desktop.set(section, 'Categories', 'Education;')
+
+    if mimetype_file and os.path.exists(mimetype_file):
+        xml = minidom.parse(mimetype_file)
+        items = xml.getElementsByTagName('mime-type')
+        if items:
+            mimetype = items[0].attributes['type'].value
+            desktop.set(section, 'MimeType', mimetype + ';')
+
+    with open(desktop_path, 'w') as desktop_file:
+        desktop.write(desktop_file)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'info',
+        type=str,
+        help='path to activity.info to read from')
+    parser.add_argument(
+        'desktop',
+        type=str,
+        help='path the .desktop to be written')
+    parser.add_argument(
+        '--mimetype',
+        type=str,
+        help='path to the mimetype.xml to read from')
+    args = parser.parse_args()
+    generate_desktop(args.info, args.desktop, args.mimetype)
