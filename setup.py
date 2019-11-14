@@ -28,4 +28,6 @@ setup(name='sugarapp',
       license='GNU LGPL',
       packages=['sugarapp'],
       zip_safe=False,
-      scripts=['bin/sugarapp'])
+      scripts=[
+          'bin/sugarapp',
+          'utils/sugarapp-gen-appdata'])

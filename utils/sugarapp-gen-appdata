@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+
+# sugarapp-gen-appdata
+#
+# Copyright 2018 Cosimo Cecchi
+# Copyright 2019 Martin Abente Lahaye
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+import sys
+import os
+import argparse
+import configparser
+
+from xml.etree import cElementTree as ET
+from xml.dom import minidom
+
+
+def generate_appdata(info_path, appdata_path):
+    info = configparser.ConfigParser()
+    info.read(os.path.join(info_path))
+
+    required_fields = [
+        'bundle_id',
+        'metadata_license',
+        'license',
+        'name',
+        'icon',
+        'description',
+        'update_contact']
+    for name in required_fields:
+        if not info.has_option('Activity', name):
+            print('[ERROR] Activity needs {} metadata for AppStream '
+                  'file'.format(name))
+            sys.exit(-1)
+
+    bundle_id = info.get('Activity', 'bundle_id')
+
+    # See https://www.freedesktop.org/software/appstream/docs/
+    root = ET.Element('component', type='desktop-application')
+    ET.SubElement(root, 'translation', type='gettext').text = \
+        bundle_id
+    ET.SubElement(root, 'update_contact').text = \
+        info.get('Activity', 'update_contact')
+    ET.SubElement(root, 'id').text = bundle_id
+    ET.SubElement(root, 'launchable', type='desktop-id').text = \
+        bundle_id + '.desktop'
+    desc = ET.fromstring('<description><p>{}</p></description>'.format(
+        info.get('Activity', 'description')))
+    root.append(desc)
+
+    ET.SubElement(root, 'content_rating', type='oars-1.1')
+
+    release_pairs = [
+        (info.get(
+            'Activity', 'activity_version'), info.get(
+            'Activity', 'release_date'))]
+    releases_root = ET.SubElement(root, 'releases')
+    for version, date in release_pairs:
+        ET.SubElement(releases_root, 'release', date=date, version=version)
+
+    license_map = {
+        'GPLv2+': 'GPL-2.0-or-later',
+        'GPLv3+': 'GPL-3.0-or-later',
+        'LGPLv2+': 'LGPL-2.0-or-later',
+        'LGPLv2.1+': 'LGPL-2.1-or-later',
+    }
+    licenses = info.get('Activity', 'license').split(';')
+    spdx_licenses = map(lambda x: license_map.get(x, x), licenses)
+    ET.SubElement(root, 'project_license').text = ' AND '.join(spdx_licenses)
+
+    copy_pairs = [('metadata_license', 'metadata_license'),
+                  ('summary', 'summary'),
+                  ('name', 'name')]
+    for key, ename in copy_pairs:
+        ET.SubElement(root, ename).text = info.get('Activity', key)
+
+    if info.has_option('Activity', 'screenshots'):
+        screenshots = info.get('Activity', 'screenshots').split(' ')
+        ss_root = ET.SubElement(root, 'screenshots')
+        for i, screenshot in enumerate(screenshots):
+            e = ET.SubElement(ss_root, 'screenshot')
+            if i == 0:
+                e.set('type', 'default')
+            ET.SubElement(e, 'image').text = screenshot.strip()
+
+    if info.has_option('Activity', 'url'):
+        ET.SubElement(root, 'url', type='homepage').text = \
+            info.get('Activity', 'url')
+    if info.has_option('Activity', 'repository_url'):
+        ET.SubElement(root, 'url', type='bugtracker').text = \
+            info.get('Activity', 'repository_url')
+    elif info.has_option('Activity', 'repository'):
+        ET.SubElement(root, 'url', type='bugtracker').text = \
+            info.get('Activity', 'repository')
+
+    tree = ET.ElementTree(root)
+    xml_data = minidom.parseString(ET.tostring(root)).toprettyxml(indent='   ')
+    with open(appdata_path, 'w') as xml:
+        xml.write(xml_data)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'info',
+        type=str,
+        help='path to activity.info to read from')
+    parser.add_argument(
+        'appdata',
+        type=str,
+        help='path the appdata.xml to be written')
+    args = parser.parse_args()
+    generate_appdata(args.info, args.appdata)
