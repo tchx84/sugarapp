@@ -26,7 +26,7 @@ import configparser
 from xml.dom import minidom
 
 
-def generate_desktop(info_path, desktop_path, mimetype_file):
+def generate_desktop(info_path, desktop_path, mimetypes_file):
     info = configparser.ConfigParser()
     info.read(os.path.join(info_path))
 
@@ -36,7 +36,8 @@ def generate_desktop(info_path, desktop_path, mimetype_file):
         'summary']
     for name in required_fields:
         if not info.has_option('Activity', name):
-            print('[ERROR] Activity needs {} metadata file'.format(name))
+            print(
+                '[ERROR] Activity needs {} metadata file for desktop'.format(name))
             sys.exit(-1)
 
     section = 'Desktop Entry'
@@ -54,8 +55,8 @@ def generate_desktop(info_path, desktop_path, mimetype_file):
     desktop.set(section, 'StartupNotify', 'true')
     desktop.set(section, 'Categories', 'Education;')
 
-    if mimetype_file and os.path.exists(mimetype_file):
-        xml = minidom.parse(mimetype_file)
+    if mimetypes_file and os.path.exists(mimetypes_file):
+        xml = minidom.parse(mimetypes_file)
         items = xml.getElementsByTagName('mime-type')
         if items:
             mimetype = items[0].attributes['type'].value
@@ -76,8 +77,8 @@ if __name__ == '__main__':
         type=str,
         help='path the .desktop to be written')
     parser.add_argument(
-        '--mimetype',
+        '--mimetypes',
         type=str,
-        help='path to the mimetype.xml to read from')
+        help='path to the mimetypes.xml to read from')
     args = parser.parse_args()
-    generate_desktop(args.info, args.desktop, args.mimetype)
+    generate_desktop(args.info, args.desktop, args.mimetypes)

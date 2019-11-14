@@ -108,7 +108,9 @@ def generate_appdata(info_path, appdata_path):
             info.get('Activity', 'repository')
 
     tree = ET.ElementTree(root)
-    xml_data = minidom.parseString(ET.tostring(root)).toprettyxml(indent='   ')
+    xml_data = minidom.parseString(
+        ET.tostring(root)).toprettyxml(
+        indent='    ')
     with open(appdata_path, 'w') as xml:
         xml.write(xml_data)
 
