@@ -20,7 +20,7 @@
 from setuptools import setup
 
 setup(name='sugarapp',
-      version='1.1',
+      version='1.2',
       description='Port Sugar activities to other desktops',
       url='https://github.com/tchx84/sugarapp',
       author='Martín Abente Lahaye',
