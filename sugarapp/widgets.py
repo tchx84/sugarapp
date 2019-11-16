@@ -42,7 +42,7 @@ class SugarCompatibleWindow(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self, **args)
 
         self.set_decorated(False)
-        self.maximize()
+        self.fullscreen()
 
         self._toolbar_box = None
         self._alerts = []
@@ -62,7 +62,7 @@ class SugarCompatibleWindow(Gtk.ApplicationWindow):
         self.__vbox.show()
 
     def is_fullscreen(self):
-        return False
+        return True
 
     def set_canvas(self, canvas):
         if self._canvas:
@@ -303,7 +303,6 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
             pass
         self._read_file_called = True
         canvas.disconnect_by_func(self.__canvas_map_cb)
-        self.fullscreen()
 
 
 class ExtendedActivityToolbarButton(ActivityToolbarButton):
