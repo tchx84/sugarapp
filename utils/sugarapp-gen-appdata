@@ -38,9 +38,10 @@ def generate_appdata(info_path, appdata_path):
         'metadata_license',
         'license',
         'name',
-        'icon',
         'description',
-        'update_contact']
+        'update_contact',
+        'release_date',
+        'developer_name']
     for name in required_fields:
         if not info.has_option('Activity', name):
             print('[ERROR] Activity needs {} metadata for AppStream '
@@ -55,6 +56,8 @@ def generate_appdata(info_path, appdata_path):
         bundle_id
     ET.SubElement(root, 'update_contact').text = \
         info.get('Activity', 'update_contact')
+    ET.SubElement(root, 'developer_name').text = \
+        info.get('Activity', 'developer_name')
     ET.SubElement(root, 'id').text = bundle_id
     ET.SubElement(root, 'launchable', type='desktop-id').text = \
         bundle_id + '.desktop'
