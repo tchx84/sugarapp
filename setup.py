@@ -41,7 +41,7 @@ class CheckRequirementsAndInstall(install):
 
 
 setup(name='sugarapp',
-      version='1.4',
+      version='1.5',
       description='Port Sugar activities to other desktops',
       url='https://github.com/tchx84/sugarapp',
       author='Martín Abente Lahaye',
