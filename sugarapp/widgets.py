@@ -36,13 +36,18 @@ from sugar3.bundle.activitybundle import get_bundle_instance
 from sugar3.graphics import style
 from sugar3.graphics.toolbutton import ToolButton
 
+from .helpers import PrimaryMonitor
+
 
 class SugarCompatibleWindow(Gtk.ApplicationWindow):
     def __init__(self, **args):
         Gtk.ApplicationWindow.__init__(self, **args)
 
         self.set_decorated(False)
-        self.fullscreen()
+        display = Gdk.Display.get_default()
+        self.fullscreen_on_monitor(
+            display.get_default_screen(),
+            PrimaryMonitor.get_number())
 
         self._toolbar_box = None
         self._alerts = []
