@@ -17,7 +17,28 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
+import sys
+
 from setuptools import setup
+from setuptools.command.install import install
+
+
+class CheckRequirementsAndInstall(install):
+
+    requirements = {
+        'PyGObject': 'gi',
+        'sugar3': 'sugar3',
+    }
+
+    def run(self):
+        for package, module in self.requirements.items():
+            try:
+                __import__(module)
+            except BaseException:
+                print('Package %s not found' % package)
+                sys.exit(1)
+        install.run(self)
+
 
 setup(name='sugarapp',
       version='1.3',
@@ -32,4 +53,7 @@ setup(name='sugarapp',
           'bin/sugarapp',
           'utils/sugarapp-gen-appdata',
           'utils/sugarapp-gen-desktop',
-          'utils/sugarapp-gen-mimetypes'])
+          'utils/sugarapp-gen-mimetypes'],
+      cmdclass={
+          'install': CheckRequirementsAndInstall,
+      })
