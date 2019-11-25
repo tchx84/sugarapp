@@ -33,7 +33,8 @@ def generate_desktop(info_path, desktop_path, mimetypes_file):
     required_fields = [
         'name',
         'bundle_id',
-        'summary']
+        'summary',
+        'tags']
     for name in required_fields:
         if not info.has_option('Activity', name):
             print(
@@ -53,7 +54,7 @@ def generate_desktop(info_path, desktop_path, mimetypes_file):
     desktop.set(section, 'Comment', info.get('Activity', 'summary'))
     desktop.set(section, 'Terminal', 'false')
     desktop.set(section, 'StartupNotify', 'true')
-    desktop.set(section, 'Categories', 'Education;')
+    desktop.set(section, 'Categories', '%s;' % info.get('Activity', 'tags'))
 
     if mimetypes_file and os.path.exists(mimetypes_file):
         xml = minidom.parse(mimetypes_file)
