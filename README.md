@@ -1,29 +1,15 @@
-# sugarapp
+# Sugarapp
 
-sugarapp helps integrate [sugar](https://sugarlabs.org) activities to other desktop environments like [GNOME](https://www.gnome.org). To do this, it provides a base [GTK](https://www.gtk.org) application and set of widgets to:
+Port Sugar applications to the desktop. It provides the basic building blocks needed for the job, like:
 
-* Simplify the port process.
-* Bypass sugar services.
-* Mimic the store-and-restore behavior of activities.
-* Extend activities with explicit save-and-open options.
+* A base desktop application that acts as a middle man between the desktop and the Sugar application.
+* A set of compatibility UI components that can be used as a replacement for Sugar-specific components.
+* A set of utilities to generate the metadata needed for a desktop application.
 
 ## Usage
 
-Port the activity by replacing `Activity` class by `SugarCompatibleActivity` class, e.g:
-```python
-from sugarapp.widgets import SugarCompatibleActivity
-...
-
-class SpeakActivity(SugarCompatibleActivity):
-    def __init__(self, handle):
-...
-```
-
-And then just run the application:
-```
-SUGAR_BUNDLE_ID=vu.lux.olpc.Speak SUGAR_BUNDLE_PATH=~/Activities/Speak.activity sugarapp
-```
+A detailed [guide](flatpak-guide.md) on how to port Sugar applications with Sugarapp and package them Flatpak is now available.
 
 ## Improvements
 
-There are MANY possible ways to simplify this even more, or even completely different ways of achieving this. This project is just exploratory, so if you are interested in this, just contact me.
+There are many possible ways to simplify this library even more so, if you are interested in contributing with this project in any capacity, just reach out.
