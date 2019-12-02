@@ -250,6 +250,7 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         return True
 
     def close(self, skip_save=False):
+        self.can_close()
         self.save()
         self.emit('_closing')
 
