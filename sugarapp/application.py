@@ -19,6 +19,7 @@
 
 import gettext
 import gi
+import logging
 import os
 import sys
 
@@ -37,11 +38,13 @@ from sugar3.bundle.bundle import MalformedBundleException
 
 logger.start()
 
+_logger = logging.getLogger()
+
 
 class Application(Gtk.Application):
     def __init__(self):
         if 'SUGAR_BUNDLE_ID' not in os.environ:
-            logger.error("SUGAR_BUNDLE_ID must be set to run application")
+            _logger.error("SUGAR_BUNDLE_ID must be set to run application")
             sys.exit(1)
         Gtk.Application.__init__(
             self,
@@ -68,7 +71,7 @@ class Application(Gtk.Application):
 
     def _setup_activity(self):
         if 'SUGAR_BUNDLE_PATH' not in os.environ:
-            logger.error("SUGAR_BUNDLE_PATH must be set to run application")
+            _logger.error("SUGAR_BUNDLE_PATH must be set to run application")
             sys.exit(1)
 
         bundle_path = os.environ['SUGAR_BUNDLE_PATH']
@@ -77,7 +80,7 @@ class Application(Gtk.Application):
         try:
             bundle = ActivityBundle(bundle_path)
         except MalformedBundleException as e:
-            logger.error(e)
+            _logger.error(e)
             sys.exit(1)
 
         base = os.path.join(os.path.expanduser('~/.sugar'), 'default')
