@@ -18,6 +18,7 @@
 # Boston, MA 02111-1307, USA.
 
 import gi
+import json
 import os
 import signal
 
@@ -170,6 +171,9 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         bundle = get_bundle_instance(self._get_bundle_path())
         self.set_icon_from_file(bundle.get_icon())
 
+        self._metadata = {}
+        self._restore_metadata()
+
     def add_stop_button(self, button):
         pass
 
@@ -252,6 +256,7 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
     def close(self, skip_save=False):
         self.can_close()
         self.save()
+        self._save_metadata()
         self.emit('_closing')
 
     def __delete_event_cb(self, widget, event):
@@ -259,9 +264,12 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         return True
 
     def get_metadata(self):
-        return None
+        return self._metadata
 
-    metadata = property(get_metadata, None)
+    def set_metadata(self, metadata):
+        self._metadata = metadata
+
+    metadata = property(get_metadata, set_metadata)
 
     def handle_view_source(self):
         pass
@@ -301,6 +309,20 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         if self._handle.uri:
             return self._handle.uri
         return self._get_autosave_filename()
+
+    def _save_metadata(self):
+        if not self._metadata:
+            return
+        metadata_path = self._get_autosave_filename() + '.metadata'
+        with open(metadata_path, 'w') as metadata_file:
+            metadata_file.write(json.dumps(self._metadata))
+
+    def _restore_metadata(self):
+        metadata_path = self._get_autosave_filename() + '.metadata'
+        if not os.path.exists(metadata_path):
+            return
+        with open(metadata_path, 'r') as metadata_file:
+            self._metadata = json.loads(metadata_file.read())
 
     def __canvas_map_cb(self, canvas):
         try:
