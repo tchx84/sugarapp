@@ -83,8 +83,18 @@ class Application(Gtk.Application):
             _logger.error(e)
             sys.exit(1)
 
-        base = os.path.join(os.path.expanduser('~/.sugar'), 'default')
-        activity_root = os.path.join(base, bundle.get_bundle_id())
+        activity_root = GLib.get_user_data_dir()
+
+        subdirs = [
+            os.path.join(activity_root, 'tmp'),
+            os.path.join(activity_root, 'data'),
+            os.path.join(activity_root, 'instance'),
+        ]
+        for subdir in subdirs:
+            try:
+                os.makedirs(subdir)
+            except:
+                pass
 
         os.environ['SUGAR_BUNDLE_ID'] = bundle.get_bundle_id()
         os.environ['SUGAR_ACTIVITY_ROOT'] = activity_root
