@@ -18,7 +18,7 @@ jobject.file_path = self._ogg_tempfile.name
 datastore.write(jobject)
 ```
 
-Many issues here. First the Sugarapp application doesn't have a `self.metadata`. In fact, is always `None`. Second, the `datastore.write()` will always fail. For this reason Sugarapp provides widgets to replace this functionality.
+The issue here is that `datastore.write()` will always fail. For this reason Sugarapp provides widgets to replace this functionality.
 
 
 ```python
