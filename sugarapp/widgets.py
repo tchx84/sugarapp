@@ -33,6 +33,7 @@ from gi.repository import Gtk
 
 from sugar3.activity.activity import _
 from sugar3.activity.widgets import ActivityToolbarButton
+from sugar3.datastore.datastore import DSMetadata
 from sugar3.bundle.activitybundle import get_bundle_instance
 from sugar3.graphics import style
 from sugar3.graphics.toolbutton import ToolButton
@@ -171,7 +172,6 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         bundle = get_bundle_instance(self._get_bundle_path())
         self.set_icon_from_file(bundle.get_icon())
 
-        self._metadata = {}
         self._restore_metadata()
 
     def add_stop_button(self, button):
@@ -267,9 +267,9 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         return self._metadata
 
     def set_metadata(self, metadata):
-        self._metadata = metadata
+        pass
 
-    metadata = property(get_metadata, set_metadata)
+    metadata = property(get_metadata, None)
 
     def handle_view_source(self):
         pass
@@ -315,14 +315,20 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
             return
         metadata_path = self._get_autosave_filename() + '.metadata'
         with open(metadata_path, 'w') as metadata_file:
-            metadata_file.write(json.dumps(self._metadata))
+            properties = self._metadata.get_dictionary()
+            metadata_file.write(json.dumps(properties))
 
     def _restore_metadata(self):
+        properties = {}
         metadata_path = self._get_autosave_filename() + '.metadata'
-        if not os.path.exists(metadata_path):
-            return
-        with open(metadata_path, 'r') as metadata_file:
-            self._metadata = json.loads(metadata_file.read())
+        try:
+            with open(metadata_path, 'r') as metadata_file:
+                properties = json.loads(metadata_file.read())
+        except:
+            pass
+        if 'title' not in properties:
+            properties['title'] = ''
+        self._metadata = DSMetadata(properties)
 
     def __canvas_map_cb(self, canvas):
         try:
