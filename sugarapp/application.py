@@ -66,7 +66,14 @@ class Application(Gtk.Application):
         else:
             self._activity.read_file(self._path)
 
+    def do_shutdown(self):
+        if self._activity is not None:
+            self._activity.close()
+            self._activity = None
+        Gtk.Application.do_shutdown(self)
+
     def _quit(self, activity):
+        self._activity = None
         self.quit()
 
     def _setup_activity(self):
