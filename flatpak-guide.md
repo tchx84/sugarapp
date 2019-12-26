@@ -268,6 +268,10 @@ You already know the basics for:
     $ appstream-util validate /var/lib/flatpak/app/org.sugarlabs.ImplodeActivity/current/active/files/share/appdata/org.sugarlabs.ImplodeActivity.appdata.xml
     ```
 
+    If appstream-util validate is not running, you can also try `flatpak run org.freedesktop.appstream-glib validate` as documented in https://github.com/flathub/flathub/wiki/AppData-Guidelines#use-flathubs-appstream-util
+
+    If the validate command is having trouble reading the appdata XML file, you can try using `cat` to read the xml file, pipe the result into a local directory, and change the path that you pass into the validate function.
+
     If both commands finish without errors, it means we are ready!
 
 5. Create a new repository in Github, as an example, `https://github.com/<YOUR_USER>/org.sugarlabs.ImplodeActivity`, and then commit and push changes there.
