@@ -127,6 +127,8 @@ class Application(Gtk.Application):
             activity_id=bundle.get_bundle_id(),
             uri=self._path)
 
+        os.chdir(bundle_path)
+
         activity = constructor(handle)
         activity.connect('_closing', self._quit)
         activity.show()
