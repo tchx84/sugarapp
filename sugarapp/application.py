@@ -130,7 +130,7 @@ class Application(Gtk.Application):
         os.chdir(bundle_path)
 
         activity = constructor(handle)
-        activity.connect('_closing', self._quit)
+        activity.connect('closing', self._quit)
         activity.show()
         return activity
 

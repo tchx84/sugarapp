@@ -141,7 +141,7 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
     __gsignals__ = {
         'shared': (GObject.SignalFlags.RUN_FIRST, None, ([])),
         'joined': (GObject.SignalFlags.RUN_FIRST, None, ([])),
-        '_closing': (GObject.SignalFlags.RUN_FIRST, None, ([])),
+        'closing': (GObject.SignalFlags.RUN_FIRST, None, ([])),
     }
 
     def __init__(self, handle, create_jobject=True):
@@ -257,7 +257,7 @@ class SugarCompatibleActivity(SugarCompatibleWindow, Gtk.Container):
         self.can_close()
         self.save()
         self._save_metadata()
-        self.emit('_closing')
+        self.emit('closing')
 
     def __delete_event_cb(self, widget, event):
         self.close()
