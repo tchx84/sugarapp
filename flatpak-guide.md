@@ -17,123 +17,93 @@ You already know the basics for:
 2. Double check that everything is setup correctly by installing and running an existing application from the terminal.
 
     ```
-    $ flatpak install flathub org.sugarlabs.AbacusActivity
-    $ flatpak run org.sugarlabs.AbacusActivity
+    $ flatpak install flathub org.sugarlabs.Maze
+    $ flatpak run org.sugarlabs.Maze
     ```
 
-3. Use the application as a development environment. The application already comes with all the basic dependencies we need. Including Sugarapp, which is the main library we use to port the Sugar applications to the desktop.
+3. Use the Maze application as a development environment. The application already comes with all the basic dependencies we need. Including Sugarapp, which is the main library we use to port the Sugar applications to the desktop.
 
     ```
-    $ flatpak run --command=bash org.sugarlabs.AbacusActivity # Enter the development environment
+    $ flatpak run --command=bash org.sugarlabs.Maze # Enter the development environment
     $ exit # Exit the development environment
     ```
 
 ## Porting an application with Sugarapp
 
-1. Get the application source code. Let's use the Implode activity as an example.
+1. Get the application source code. Let's use HelloWorld application as an example.
 
     ```
-    $ git clone https://github.com/sugarlabs/implode-activity.git
-    $ cd implode-activity
+    $ git clone https://github.com/sugarlabs/hello-world.git
+    $ cd hello-world
     ```
 
 2. Identify the main activity class.
 
     ```
-    $ cat activity/activity.info | grep exec # To find that is the ImplodeActivity class in the implodeactivity.py file
-    $ vim implodeactivity.py # Edit the file with you preferred text editor
+    $ cat activity/activity.info | grep exec # To find the main class
+    $ vim activity.py # Edit the file with you preferred text editor
     ```
 
 3. Replace the Sugar Activity class by the Sugarapp SugarCompatibleActivity class.
 
     ```diff
-    diff --git a/implodeactivity.py b/implodeactivity.py
-    index 71900d5..2107df6 100644
-    --- a/implodeactivity.py
-    +++ b/implodeactivity.py
-    @@ -20,8 +20,6 @@ import logging
-     _logger = logging.getLogger('implode-activity')
-     
-     from gettext import gettext as _
-    -
-    -from sugar3.activity.activity import Activity
-     from sugar3.graphics import style
-     from sugar3.graphics.icon import Icon
-     from sugar3.graphics.radiotoolbutton import RadioToolButton
-    @@ -43,8 +41,10 @@ from gi.repository import Gdk
-     
-     from keymap import KEY_MAP
+    diff --git a/activity.py b/activity.py
+    index f6f1634..e4e6607 100644
+    --- a/activity.py
+    +++ b/activity.py
+    @@ -30,13 +30,15 @@ from sugar3.activity.widgets import StopButton
+     from sugar3.activity.widgets import ShareButton
+     from sugar3.activity.widgets import DescriptionItem
      
     +from sugarapp.widgets import SugarCompatibleActivity
-    +
      
-    -class ImplodeActivity(Activity):
-    +class ImplodeActivity(SugarCompatibleActivity):
+    -class HelloWorldActivity(activity.Activity):
+    +
+    +class HelloWorldActivity(SugarCompatibleActivity):
+         """HelloWorldActivity class as specified in activity.info"""
+     
          def __init__(self, handle):
-             super(ImplodeActivity, self).__init__(handle)
+             """Set up the HelloWorld activity."""
+    -        activity.Activity.__init__(self, handle)
+    +        SugarCompatibleActivity.__init__(self, handle)
+     
+             # we do not have collaboration features
+             # make the share option insensitive
     ```
 
 4. Run the application with Sugarapp.
 
     ```
-    $ cat activity/activity.info | grep bundle_id # To find that is com.jotaro.ImplodeActivity
-    $ flatpak run --command=bash --filesystem=$PWD --socket=session-bus  org.sugarlabs.AbacusActivity # To enter the development environment
-    $ SUGAR_BUNDLE_ID=com.jotaro.ImplodeActivity SUGAR_BUNDLE_PATH=$PWD sugarapp
+    $ cat activity/activity.info | grep bundle_id # In this example, the app-id is org.sugarlabs.HelloWorld
+    $ flatpak run --command=bash --filesystem=$PWD --socket=session-bus org.sugarlabs.Maze # To enter the development environment
+    $ SUGAR_BUNDLE_ID=org.sugarlabs.HelloWorld SUGAR_BUNDLE_PATH=$PWD sugarapp
     ```
 
-5. The application will run, but the close button won't work. The reason is that the application is trying to access a file that is outside of its permissions, so we need to fix the application. Like this example, there will be other issues that need to be addressed. In this case the fix is simple because Sugarapp always provides a valid `file_path` to the `write_file` method to persist the application state between sessions. We can remove the other file path.
+5. Extend toolbars to be able to save and load projects.
+
+    Sugar applications can automatically save and load projects, e.g. a user starts a new project in MusicKeyboard and then simply closes the application. The project will be restored when the user re-opens the application. This is supported by the Sugar API, where every application can provide a `write_file` and `read_file` method.
+
+    Sugarapp mimics this behavior by always providing a valid `file_path` to these methods. Sugarapp can also to extend the application UI by providing widgets to support saving and loading files, just like any other desktop application. As an example:
 
     ```diff
-    diff --git a/implodeactivity.py b/implodeactivity.py
-    index 2107df6..8001f9b 100644
-    --- a/implodeactivity.py
-    +++ b/implodeactivity.py
-    @@ -102,15 +102,8 @@ class ImplodeActivity(SugarCompatibleActivity):
-         def write_file(self, file_path):
-             # Writes the game state to a file.
-             game_data = self._game.get_game_state()
-    -        file_data = ['Implode save game', [1, 0], game_data]
-    -        last_game_path = self._get_last_game_path()
-    -        for path in (file_path, last_game_path):
-    -            f = open(path, 'wt')
-    -            io = StringIO()
-    -            json.dump(file_data, io)
-    -            content = io.getvalue()
-    -            f.write(content)
-    -            f.close()
-    +        with open(file_path, 'w') as save_file:
-    +            save_file.write(json.dumps(game_data))
-    ```
-
-    To see the most common issues take a look at this [list](flatpak-guide-common-issues.md).
-
-6. Sugarapp provides widgets to support more interactions with the desktop. As an example, buttons for opening and saving files.
-
-    ```diff
-    diff --git a/implodeactivity.py b/implodeactivity.py
-    index 8001f9b..f94b659 100644
-    --- a/implodeactivity.py
-    +++ b/implodeactivity.py
-    @@ -25,7 +25,7 @@ from sugar3.graphics.icon import Icon
-     from sugar3.graphics.radiotoolbutton import RadioToolButton
-     from sugar3.graphics.toolbutton import ToolButton
-     
-    -from sugar3.activity.widgets import ActivityToolbarButton, StopButton
-    +from sugar3.activity.widgets import StopButton
+    diff --git a/activity.py b/activity.py
+    index b8d179a..76ad943 100644
+    --- a/activity.py
+    +++ b/activity.py
+    @@ -25,9 +25,9 @@ from gettext import gettext as _
+     from sugar3.activity import activity
      from sugar3.graphics.toolbarbox import ToolbarBox
-     
-     from implodegame import ImplodeGame
-    @@ -42,6 +42,7 @@ from gi.repository import Gdk
-     from keymap import KEY_MAP
+     from sugar3.activity.widgets import StopButton
+    -from sugar3.activity.widgets import ActivityToolbarButton
      
      from sugarapp.widgets import SugarCompatibleActivity
     +from sugarapp.widgets import ExtendedActivityToolbarButton
      
      
-     class ImplodeActivity(SugarCompatibleActivity):
-    @@ -145,7 +146,7 @@ class ImplodeActivity(SugarCompatibleActivity):
+     class HelloWorldActivity(SugarCompatibleActivity):
+    @@ -44,7 +44,7 @@ class HelloWorldActivity(SugarCompatibleActivity):
+             # toolbar with the new toolbar redesign
              toolbar_box = ToolbarBox()
-             toolbar = toolbar_box.toolbar
      
     -        activity_button = ActivityToolbarButton(self)
     +        activity_button = ExtendedActivityToolbarButton(self)
@@ -141,69 +111,68 @@ You already know the basics for:
              activity_button.show()
     ```
 
-7. Before we can move on to packaging, we need to make sure the `activity/activity.info` file has all the required fields.
+    To see the most common issues take a look at this [list](flatpak-guide-common-issues.md).
+
+6. Before we can move on to packaging, we need to make sure the `activity/activity.info` file has all the required fields.
 
     ```diff
     diff --git a/activity/activity.info b/activity/activity.info
-    index b05bdd8..3d6c3dc 100644
+    index 4c1a510..6da1a7a 100644
     --- a/activity/activity.info
     +++ b/activity/activity.info
-    @@ -1,12 +1,18 @@
-     [Activity]
-     name = Implode
-     activity_version = 20
-    -bundle_id = com.jotaro.ImplodeActivity
-    +release_date = 2019-10-15
-    +bundle_id = org.sugarlabs.ImplodeActivity
-     icon = activity-implode
-     exec = sugar-activity3 implodeactivity.ImplodeActivity
+    @@ -2,7 +2,16 @@
+     name = HelloWorld
+     activity_version = 7
+     bundle_id = org.sugarlabs.HelloWorld
+    +release_date = 2020-03-12
+     exec = sugar-activity3 activity.HelloWorldActivity
+     icon = activity-helloworld
      license = GPLv2+
     +metadata_license = CC0-1.0
-     show_launcher = yes
-    -repository = https://github.com/quozl/implode-activity.git
-    -summary = Implode blocks of the same colour until they are all gone.
-    +repository = https://github.com/sugarlabs/implode-activity.git
-    +summary = Implode blocks of the same colour until they are all gone
-    +description = Implode is a logic game based on the "falling block" model of Tetris. The game starts with a grid partially filled with blocks. The player makes a move by removing adjacent blocks of the same color in groups of three or more.
-     url = https://help.sugarlabs.org/en/implode.html
-     tags = Game
+     repository = https://github.com/sugarlabs/hello-world.git
+    +summary = A demo Sugar application
+    +description = HelloWorld is a demo application used in tutorials for developing new Sugar applications or porting Sugar applications to Flatpak.
+    +url = https://github.com/sugarlabs/hello-world.git
+    +tags = Education
     +update_contact = tch@sugarlabs.org
     +developer_name = Sugar Labs Community
-    +screenshots = https://help.sugarlabs.org/en/_images/implode-image1.png
+    +screenshots = https://i.imgur.com/N1uXt6S.png
     ```
 
-    Most of the missing information can be found in places like [ASLO](http://activities.sugarlabs.org/), [help pages](https://help.sugarlabs.org) and the git repository it-self. Note that I renamed the `bundle_id` to `org.sugarlabs.ImplodeActivty` so we can publish Sugar applications with a consistent and more useful identity.
+    Most of the missing information can be found in places like [ASLO](http://activities.sugarlabs.org/), [help pages](https://help.sugarlabs.org) and the git repository it-self. Note that it is recommended to rename the `bundle_id` to something that starts with `org.sugarlabs.` so we can publish Sugar applications with a consistent and more useful identity.
 
-8. We need to create patches for the changes we made. As an example, one patch for the changes to the activity.info file. It can be called `implode-info.patch`. It's preferred to separate patches for bug fixes and other issues. This will simplify the process of up-streaming bug fixes later.
+7. We need to create patches for the changes we made. As an example, one patch for the changes to the activity.info file. It can be called `helloworld-info.patch`. It's preferred to separate patches for bug fixes and other issues. This will simplify the process of up-streaming bug fixes later.
 
     ```
-    $ git diff activity/activity.info > implode-info.patch 
+    $ git diff activity/activity.info > helloworld-info.patch
+    $ git diff activity.py > helloworld-port.patch
     ```
 
 ## Packaging the applications with Flatpak
 
-1. The application is ready for the desktop. Now we need to write a Flatpak manifest to build and package the application. A manifest is a JSON file with all the information needed to build the application. All the heavy lifting work is already done for this application, so let's re-use it.
-
-    ```
-    $ git clone https://github.com/flathub/org.sugarlabs.ImplodeActivity.git
-    $ cd org.sugarlabs.ImplodeActivity
-    $ git submodule update
-    $ rm -rf .git # Let's remove this to continue with the guide
-    $ vim org.sugarlabs.ImplodeActivity.json
-    ```
-
-2. There's a lot of things in the manifest, so let's omit most of it and show here only what's specific for the application we want to build. 
+1. The application is ready for the desktop. Now we need to write a Flatpak manifest to build and package the application. A manifest is a JSON file with all the information needed to build the application.
 
     ```json
     {
-        "app-id": "org.sugarlabs.ImplodeActivity",
+        "app-id": "org.sugarlabs.HelloWorld",
+        "base": "org.sugarlabs.BaseApp",
+        "base-version": "20.04",
+        "runtime": "org.gnome.Platform",
+        "runtime-version": "3.36",
+        "sdk": "org.gnome.Sdk",
+        "separate-locales": false,
+        "command": "sugarapp",
         "finish-args": [
-            "--env=SUGAR_BUNDLE_ID=org.sugarlabs.ImplodeActivity",
-            "--env=SUGAR_BUNDLE_PATH=/app/share/sugar/activities/Implode.activity/"
+            "--socket=x11",
+            "--socket=pulseaudio",
+            "--share=ipc",
+            "--device=dri",
+            "--env=SUGAR_BUNDLE_ID=org.sugarlabs.HelloWorld",
+            "--env=SUGAR_BUNDLE_PATH=/app/share/sugar/activities/HelloWorld.activity"
         ],
         "modules": [
             {
-                "name": "implode",
+                "name": "hello-world",
                 "buildsystem": "simple",
                 "build-commands": [
                     "python3 setup.py install --prefix=${FLATPAK_DEST} --skip-install-desktop-file --skip-install-mime"
@@ -211,74 +180,63 @@ You already know the basics for:
                 "sources": [
                     {
                         "type": "git",
-                        "url": "https://github.com/sugarlabs/implode-activity",
-                        "tag": "v20",
-                        "commit": "3073f6bf235dc83c2227ad34c2b46cad0a192c8a"
+                        "url": "https://github.com/sugarlabs/hello-world.git",
+                        "branch": "master",
+                        "commit": "244bcaf802b5a093787a121ddcbefc0bec917a8e"
                     },
                     {
                         "type": "patch",
-                        "path": "implode-port.patch"
+                        "path": "helloworld-port.patch"
                     },
                     {
                         "type": "patch",
-                        "path": "implode-monitors.patch"
-                    },
-                    {
-                        "type": "patch",
-                        "path": "implode-info.patch"
+                        "path": "helloworld-info.patch"
                     }
                 ],
                 "post-install": [
                     "sugarapp-gen-mimetypes activity/activity.info mimetypes",
                     "sugarapp-gen-appdata activity/activity.info appdata",
                     "sugarapp-gen-desktop activity/activity.info desktop --mimetypes mimetypes",
-                    "install -D mimetypes /app/share/mime/packages/org.sugarlabs.ImplodeActivity.xml",
-                    "install -D mimetypes /app/share/sugar/activities/Implode.activity/activity/mimetypes.xml",
-                    "install -D appdata /app/share/metainfo/org.sugarlabs.ImplodeActivity.appdata.xml",
-                    "install -D desktop /app/share/applications/org.sugarlabs.ImplodeActivity.desktop",
-                    "install -D activity/activity-implode.svg /app/share/icons/hicolor/scalable/apps/org.sugarlabs.ImplodeActivity.svg"
+                    "install -D mimetypes /app/share/mime/packages/org.sugarlabs.HelloWorld.xml",
+                    "install -D mimetypes /app/share/sugar/activities/HelloWorld.activity/activity/mimetypes.xml",
+                    "install -D appdata /app/share/metainfo/org.sugarlabs.HelloWorld.appdata.xml",
+                    "install -D desktop /app/share/applications/org.sugarlabs.HelloWorld.desktop",
+                    "install -D activity/activity-helloworld.svg /app/share/icons/hicolor/scalable/apps/org.sugarlabs.HelloWorld.svg"
                 ]
             }
         ]
     }
     ```
 
-    * `app-id` is what makes the application unique and it's a critical piece of information needed by the desktop.
-    * `finish-args` is where we define `SUGAR_BUNDLE_ID` and `SUGAR_BUNDLE_PATH`variables because it's needed by the Sugarapp to run.
-    * `modules` is a list of dependencies that we need to build our application. including the application it-self. Note that many dependencies are already provided by the `runtime` and `sdk` defined in the full manifest.
-    * `sources` is the list of git repositories, files and patches needed to build the application. Here is where we apply the patches we have created before.
-    * `post-install` is where we generate all the metadata needed by the desktop.
-
     To learn more about the manifest just take a look at the Flatpak [documentation](http://docs.flatpak.org/en/latest/manifests.html).
 
-3. Let's build and run the application now.
+2. Let's build and run the application now.
 
     ```
-    $ flatpak-builder --force-clean --repo=repo build org.sugarlabs.ImplodeActivity.json
-    $ flatpak build-bundle repo implode.flatpak org.sugarlabs.ImplodeActivity
-    $ flatpak install implode.flatpak # This is the whole application in one single file
-    $ flatpak run org.sugarlabs.ImplodeActivity
+    $ flatpak-builder --force-clean --repo=repo build org.sugarlabs.HelloWorld.json
+    $ flatpak build-bundle repo helloworld.flatpak org.sugarlabs.HelloWorld
+    $ flatpak install helloworld.flatpak # This is the whole application in one single file
+    $ flatpak run org.sugarlabs.HelloWorld//master
     ```
 
-4. Once it's installed, we need to double check that the metadata was generated correctly.
+3. Once it's installed, we need to double check that the metadata was generated correctly.
 
     ```
     $ flatpak install flathub org.freedesktop.appstream-glib # Install the tools
-    $ desktop-file-validate /var/lib/flatpak/app/org.sugarlabs.ImplodeActivity/current/active/files/share/applications/org.sugarlabs.ImplodeActivity.desktop
-    $ appstream-util validate /var/lib/flatpak/app/org.sugarlabs.ImplodeActivity/current/active/files/share/appdata/org.sugarlabs.ImplodeActivity.appdata.xml
+    $ desktop-file-validate /var/lib/flatpak/app/org.sugarlabs.HelloWorld/current/active/files/share/applications/org.sugarlabs.HelloWorld.desktop
+    $ appstream-util validate /var/lib/flatpak/app/org.sugarlabs.HelloWorld/current/active/files/share/appdata/org.sugarlabs.HelloWorld.appdata.xml
     ```
 
     If both commands finish without errors, it means we are ready!
 
-5. Create a new repository in Github, as an example, `https://github.com/<YOUR_USER>/org.sugarlabs.ImplodeActivity`, and then commit and push changes there.
+4. Create a new repository in Github, as an example, `https://github.com/<YOUR_USER>/org.sugarlabs.HelloWorld`, and then commit and push changes there.
 
 ```
 $ git init
-$ git remote add origin https://github.com/<YOUR_USER>/org.sugarlabs.ImplodeActivity.git
-# git submodule add https://github.com/flathub/shared-modules.git
-$ git add org.sugarlabs.ImplodeActivity.json # and all the other files referrenced in your manifest
-$ git commit -m "Add org.sugarlabs.ImplodeActivity"
+$ git remote add origin https://github.com/<YOUR_USER>/org.sugarlabs.HelloWorld.git
+$ git add org.sugarlabs.HelloWorld.json # and all the other files referrenced in your manifest
+$ git commit -m "Add org.sugarlabs.HelloWorld"
 $ git push origin master
 ```
 
-And that's it for now!
+And that's it for now! You can find the full example [here](https://github.com/tchx84/org.sugarlabs.HelloWorld).
