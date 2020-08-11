@@ -231,12 +231,12 @@ You already know the basics for:
 
 4. Create a new repository in Github, as an example, `https://github.com/<YOUR_USER>/org.sugarlabs.HelloWorld`, and then commit and push changes there.
 
-```
-$ git init
-$ git remote add origin https://github.com/<YOUR_USER>/org.sugarlabs.HelloWorld.git
-$ git add org.sugarlabs.HelloWorld.json # and all the other files referrenced in your manifest
-$ git commit -m "Add org.sugarlabs.HelloWorld"
-$ git push origin master
-```
+    ```
+    $ git clone https://github.com/<YOUR_USER>/org.sugarlabs.HelloWorld.git
+    $ cd org.sugarlabs.HelloWorld
+    $ git add org.sugarlabs.HelloWorld.json # and all the other files referrenced in your manifest
+    $ git commit -m "Add org.sugarlabs.HelloWorld"
+    $ git push origin master
+    ```
 
 And that's it for now! You can find the full example [here](https://github.com/tchx84/org.sugarlabs.HelloWorld).
