@@ -214,8 +214,8 @@ You already know the basics for:
 
     ```
     $ flatpak-builder --force-clean --repo=repo build org.sugarlabs.HelloWorld.json
-    $ flatpak build-bundle repo helloworld.flatpak org.sugarlabs.HelloWorld
-    $ flatpak install helloworld.flatpak # This is the whole application in one single file
+    $ flatpak build-bundle repo bundle.flatpak org.sugarlabs.HelloWorld
+    $ flatpak install bundle.flatpak # The bundle is the whole application in a single file
     $ flatpak run org.sugarlabs.HelloWorld//master
     ```
 
