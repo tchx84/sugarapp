@@ -17,14 +17,13 @@ You already know the basics for:
 2. Double check that everything is setup correctly by installing and running an existing application from the terminal.
 
     ```
-    $ flatpak install flathub org.sugarlabs.Maze
-    $ flatpak run org.sugarlabs.Maze
+    $ flatpak install flathub org.sugarlabs.BaseApp
     ```
 
-3. Use the Maze application as a development environment. The application already comes with all the basic dependencies we need. Including Sugarapp, which is the main library we use to port the Sugar applications to the desktop.
+3. Use this BaseApp as a development environment, it already comes with all the basic dependencies we need. Including Sugarapp, which is the main library we use to port the Sugar applications to the desktop.
 
     ```
-    $ flatpak run --command=bash org.sugarlabs.Maze # Enter the development environment
+    $ flatpak run --command=bash org.sugarlabs.BaseApp # Enter the development environment
     $ exit # Exit the development environment
     ```
 
@@ -75,7 +74,7 @@ You already know the basics for:
 
     ```
     $ cat activity/activity.info | grep bundle_id # In this example, the app-id is org.sugarlabs.HelloWorld
-    $ flatpak run --command=bash --filesystem=$PWD --socket=session-bus org.sugarlabs.Maze # To enter the development environment
+    $ flatpak run --command=bash --filesystem=$PWD --socket=session-bus --socket=x11 org.sugarlabs.BaseApp # To enter the development environment
     $ SUGAR_BUNDLE_ID=org.sugarlabs.HelloWorld SUGAR_BUNDLE_PATH=$PWD sugarapp
     ```
 
@@ -156,9 +155,9 @@ You already know the basics for:
     {
         "app-id": "org.sugarlabs.HelloWorld",
         "base": "org.sugarlabs.BaseApp",
-        "base-version": "20.04",
+        "base-version": "21.04",
         "runtime": "org.gnome.Platform",
-        "runtime-version": "3.36",
+        "runtime-version": "40",
         "sdk": "org.gnome.Sdk",
         "separate-locales": false,
         "command": "sugarapp",
