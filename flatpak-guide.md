@@ -212,9 +212,7 @@ You already know the basics for:
 2. Let's build and run the application now.
 
     ```
-    $ flatpak-builder --force-clean --repo=repo build org.sugarlabs.HelloWorld.json
-    $ flatpak build-bundle repo bundle.flatpak org.sugarlabs.HelloWorld
-    $ flatpak install bundle.flatpak # The bundle is the whole application in a single file
+    $ flatpak-builder --user --force-clean --install build org.sugarlabs.HelloWorld.json
     $ flatpak run org.sugarlabs.HelloWorld//master
     ```
 
