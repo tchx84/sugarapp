@@ -26,7 +26,6 @@ You already know the basics for:
     $ flatpak run --command=bash org.sugarlabs.BaseApp # Enter the development environment
     $ exit # Exit the development environment
     ```
-    
 
 ## Porting an application with Sugarapp
 
