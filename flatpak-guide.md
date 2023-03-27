@@ -27,6 +27,14 @@ You already know the basics for:
     $ exit # Exit the development environment
     ```
 
+4. Install org.gnome.Sdk to help package application in the following step.
+
+    ```
+    $ flatpak install flathub org.gnome.Sdk//42
+    ```
+   Note: To correspond with the JSON file mentioned after, we have chosen to download version 42 here.
+    
+
 ## Porting an application with Sugarapp
 
 1. Get the application source code. Let's use HelloWorld application as an example.
