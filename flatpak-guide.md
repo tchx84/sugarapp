@@ -26,13 +26,6 @@ You already know the basics for:
     $ flatpak run --command=bash org.sugarlabs.BaseApp # Enter the development environment
     $ exit # Exit the development environment
     ```
-
-4. Install org.gnome.Sdk to help package application in the following step.
-
-    ```
-    $ flatpak install flathub org.gnome.Sdk//42
-    ```
-   Note: To correspond with the JSON file mentioned after, we have chosen to download version 42 here.
     
 
 ## Porting an application with Sugarapp
@@ -220,6 +213,7 @@ You already know the basics for:
 2. Let's build and run the application now.
 
     ```
+    $ flatpak install flathub org.gnome.Sdk//42
     $ flatpak-builder --user --force-clean --install build org.sugarlabs.HelloWorld.json
     $ flatpak run org.sugarlabs.HelloWorld//master
     ```
