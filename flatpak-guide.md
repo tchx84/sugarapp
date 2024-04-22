@@ -134,6 +134,7 @@ You already know the basics for:
     +url = https://github.com/sugarlabs/hello-world.git
     +tags = Education
     +update_contact = tch@sugarlabs.org
+    +developer_id = org.sugarlabs
     +developer_name = Sugar Labs Community
     +screenshots = https://i.imgur.com/N1uXt6S.png
     ```
