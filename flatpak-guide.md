@@ -156,9 +156,9 @@ You already know the basics for:
     {
         "app-id": "org.sugarlabs.HelloWorld",
         "base": "org.sugarlabs.BaseApp",
-        "base-version": "23.06",
+        "base-version": "24.04",
         "runtime": "org.gnome.Platform",
-        "runtime-version": "44",
+        "runtime-version": "46",
         "sdk": "org.gnome.Sdk",
         "separate-locales": false,
         "command": "sugarapp",
